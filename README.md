@@ -8,9 +8,9 @@ An end-to-end data engineering project that streams synthetic user data from a P
 
 ```
 ┌─────────────────┐     INSERT      ┌─────────────┐
-│  user-generator │ ─────────────▶  │   PostgreSQL DB  │
-│  (Airflow DAG)  │                 │   raw_users      │
-└─────────────────┘                 └────────┬───────┘
+│  user-generator │ ─────────────▶  │   PostgreSQL DB  │   │
+│  (Airflow DAG)  │                 │                       │     | raw_users    |       │
+└─────────────────┘                      └────────┬─────┘
                                              │  CDC (Debezium)
                                              ▼
                                     ┌─────────────────┐
