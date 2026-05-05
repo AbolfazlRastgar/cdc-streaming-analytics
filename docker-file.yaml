@@ -1,0 +1,293 @@
+# version: "3.9"
+
+# services:
+
+#   redpanda:
+#     image: docker.arvancloud.ir/redpandadata/redpanda:latest
+#     container_name: redpanda-final-project
+#     command:
+#       - redpanda
+#       - start
+#       - --overprovisioned
+#       - --smp
+#       - "1"
+#       - --memory
+#       - 1G
+#       - --reserve-memory
+#       - 0M
+#       - --node-id
+#       - "0"
+#       - --check=false
+#       - --kafka-addr
+#       - PLAINTEXT://0.0.0.0:9092
+#       - --advertise-kafka-addr
+#       - PLAINTEXT://redpanda:9092
+#     ports:
+#       - "9092:9092"
+#     volumes:
+#       - redpanda_data:/var/lib/redpanda/data
+
+#   redpanda-console:
+#     image: docker.arvancloud.ir/redpandadata/console:latest
+#     container_name: redpanda-console-final-project
+#     depends_on:
+#       - redpanda
+#     ports:
+#       - "8081:8080"
+#     environment:
+#       KAFKA_BROKERS: redpanda:9092
+
+#   clickhouse:
+#     image: docker.devneeds.ir/clickhouse/clickhouse-server:latest
+#     container_name: clickhouse-final-project
+#     ports:
+#       - "8123:8123"
+#       - "9000:9000"
+#     volumes:
+#       - clickhouse_data:/var/lib/clickhouse
+#     restart: unless-stopped
+
+#   metabase:
+#     image: docker.devneeds.ir/metabase/metabase:latest
+#     container_name: metabase-final-project
+#     depends_on:
+#       - clickhouse
+#     ports:
+#       - "3000:3000"
+#     volumes:
+#       - metabase_data:/metabase-data
+#     environment:
+#       # دیتابیس داخلی خود Metabase (H2)
+#       MB_DB_FILE: /metabase-data/metabase.db
+#     restart: unless-stopped
+
+#   airflow:
+#     build: .
+#     container_name: airflow-final-project
+#     ports:
+#       - "8080:8080"
+#     environment:
+#       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+#       AIRFLOW__CORE__EXECUTOR: SequentialExecutor
+#     volumes:
+#       - ./python:/opt/airflow/python
+#       - ./dags:/opt/airflow/dags
+#     command: standalone
+#     restart: unless-stopped
+  
+#   debezium:
+#     image: docker.arvancloud.ir/debezium/connect:3.0.0.Final
+#     container_name: debezium-final-project
+#     hostname: debezium-final-project
+
+#     # postgres dependency removed
+#     depends_on:
+#       redpanda:
+#         condition: service_healthy
+
+#     ports:
+#       - '8083:8083'
+#     environment:
+#       BOOTSTRAP_SERVERS: redpanda:29092
+#       CONNECT_REST_ADVERTISED_HOST_NAME: debezium-final-project
+#       GROUP_ID: 1
+#       CONFIG_STORAGE_TOPIC: connect_configs
+#       STATUS_STORAGE_TOPIC: connect_statuses
+#       OFFSET_STORAGE_TOPIC: connect_offsets
+#       KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+#       VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+#       ENABLE_DEBEZIUM_SCRIPTING: 'true'
+#     healthcheck:
+#       test: ['CMD', 'curl', '--silent', '--fail', '-X', 'GET', 'http://localhost:8083/connectors']
+#       start_period: 10s
+#       interval: 10s
+#       timeout: 5s
+#       retries: 5
+#     networks:
+#       - services
+
+#   debezium-ui:
+#     image: docker.arvancloud.ir/debezium/debezium-ui:latest
+#     container_name: debezium-ui-final-project
+#     hostname: debezium-ui-final-project
+#     depends_on:
+#       debezium:
+#         condition: service_healthy
+#     ports:
+#       - '8080:8080'
+#     environment:
+#       KAFKA_CONNECT_URIS: http://debezium:8083
+#     networks:
+#       - services
+  # redpanda:
+  #   image: docker.arvancloud.ir/redpandadata/redpanda:latest
+  #   container_name: redpanda-final-project
+  #   command:
+  #     - redpanda
+  #     - start
+  #     - --overprovisioned
+  #     - --smp
+  #     - "1"
+  #     - --memory
+  #     - 1G
+  #     - --reserve-memory
+  #     - 0M
+  #     - --node-id
+  #     - "0"
+  #     - --check=false
+  #     - --kafka-addr
+  #     - PLAINTEXT://0.0.0.0:9092
+  #     - --advertise-kafka-addr
+  #     - PLAINTEXT://localhost:9092
+  #   ports:
+  #     - "9092:9092"
+  #   volumes:
+  #     - redpanda_data:/var/lib/redpanda/data
+  #   networks:
+  #     - services
+# volumes:
+#   redpanda_data:
+#   clickhouse_data:
+#   metabase_data:
+
+
+
+version: "3.9"
+
+services:
+  redpanda:
+    image: docker.arvancloud.ir/redpandadata/redpanda:latest
+    container_name: redpanda-final-project
+    command:
+      - redpanda
+      - start
+      - --overprovisioned
+      - --smp
+      - "1"
+      - --memory
+      - 1G
+      - --reserve-memory
+      - 0M
+      - --node-id
+      - "0"
+      - --check=false
+      - --kafka-addr
+      - internal://0.0.0.0:9092,external://0.0.0.0:29092
+      - --advertise-kafka-addr
+      - internal://redpanda-final-project:9092,external://localhost:29092
+    ports:
+      - "9092:9092"     # internal
+      - "29092:29092"   # external
+    volumes:
+      - redpanda_data:/var/lib/redpanda/data
+    networks:
+      - services
+
+  redpanda-console:
+    image: docker.arvancloud.ir/redpandadata/console:latest
+    container_name: redpanda-console-final-project
+    depends_on:
+      - redpanda
+    ports:
+      - "8081:8080"
+    environment:
+      KAFKA_BROKERS: redpanda:9092
+    networks:
+      - services
+
+  clickhouse:
+    image: docker.devneeds.ir/clickhouse/clickhouse-server:latest
+    container_name: clickhouse-final-project
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    environment:
+      CLICKHOUSE_USER: admin
+      CLICKHOUSE_PASSWORD: 123456
+      CLICKHOUSE_DB: default
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+    networks:
+      - services
+    restart: unless-stopped
+
+  metabase:
+    image: docker.devneeds.ir/metabase/metabase:latest
+    container_name: metabase-final-project
+    depends_on:
+      - clickhouse
+    ports:
+      - "3000:3000"
+    volumes:
+      - metabase_data:/metabase-data
+    environment:
+      MB_DB_FILE: /metabase-data/metabase.db
+    networks:
+      - services
+    restart: unless-stopped
+
+  airflow:
+    build: .
+    container_name: airflow-final-project
+    ports:
+      - "8080:8080"
+    environment:
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__CORE__EXECUTOR: SequentialExecutor
+    volumes:
+      - ./python:/opt/airflow/python
+      - ./dags:/opt/airflow/dags
+    networks:
+      - services
+    command: standalone
+    restart: unless-stopped
+
+  debezium:
+    image: docker.arvancloud.ir/debezium/connect:latest
+    container_name: debezium-final-project
+    ports:
+      - "8083:8083"
+    environment:
+      BOOTSTRAP_SERVERS: redpanda:9092
+      GROUP_ID: connect-cluster
+      REST_PORT: 8083
+      REST_HOST_NAME: 0.0.0.0
+      REST_ADVERTISED_HOST_NAME: debezium
+      CONFIG_STORAGE_TOPIC: connect_configs
+      OFFSET_STORAGE_TOPIC: connect_offsets
+      STATUS_STORAGE_TOPIC: connect_status
+      CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      STATUS_STORAGE_REPLICATION_FACTOR: 1
+      KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      PLUGIN_PATH: /kafka/connect
+    mem_limit: 1G
+    depends_on:
+      - redpanda
+    networks:
+      - services
+    restart: unless-stopped
+
+  debezium-ui:
+    image: docker.arvancloud.ir/debezium/debezium-ui:latest
+    container_name: debezium-ui-final-project
+    depends_on:
+      - debezium
+    ports:
+      - "8085:8080"
+    environment:
+      KAFKA_CONNECT_URIS: http://debezium:8083
+    networks:
+      - services
+
+networks:
+  services:
+    driver: bridge
+
+volumes:
+  redpanda_data:
+  clickhouse_data:
+  metabase_data:
