@@ -250,30 +250,10 @@ Then reference them like this in the README (examples below):
 ---
 
 ### Dashboard Overview
-![Dashboard Overview](assets/screenshots/dashboard-overview.png)
-> *Main dashboard showing real-time user counts, active sessions, and key KPIs.*
+![Dashboard Overview](./pic.png)
+> *Main dashboard showing real-time user counts, active users and their location.*
 
 ---
-
-### Account Level Distribution
-![Account Levels](assets/screenshots/account-levels.png)
-> *Breakdown of users across Bronze / Silver / Gold / Platinum tiers. Useful for understanding the simulated customer base.*
-
----
-
-### Spending by Country
-![Spending by Country](assets/screenshots/spending-by-country.png)
-> *Total and average order value aggregated by country — a typical OLAP query that ClickHouse handles in milliseconds even at scale.*
-
----
-
-### Risk Score Distribution
-![Risk Score](assets/screenshots/risk-score-distribution.png)
-> *Histogram of the `risk_score` field (0–1). In a real system this would feed into fraud detection or customer segmentation workflows.*
-
----
-
-**Sample ClickHouse queries used in Metabase:**
 
 >  The table name below (`users`) should be replaced with whatever table your `consumer.py` creates in ClickHouse. Adjust the `JSONExtract` paths to match your actual column structure.
 
